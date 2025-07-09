@@ -3,7 +3,6 @@ import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import LatestCollection from '../components/LatestCollection'
 import Footer from './../components/Footer';
-import EssentialsHero from './../components/EssentialsHero';
 
 const Home = () => {
   return (

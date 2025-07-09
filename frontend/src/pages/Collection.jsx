@@ -4,6 +4,7 @@ import Navbar from './../components/Navbar';
 import gsap from 'gsap';
 import { motion, useAnimation } from 'framer-motion';
 import Footer from '../components/Footer';
+import 'locomotive-scroll/dist/locomotive-scroll.css';
 
 const heroImg = 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80'; // Elegant suit
 const menImgs = [

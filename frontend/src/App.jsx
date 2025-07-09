@@ -1,10 +1,11 @@
-import React from 'react'
-import { Route, Routes } from 'react-router-dom'
+import React, { useRef, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LocomotiveScroll from 'locomotive-scroll';
+import 'locomotive-scroll/dist/locomotive-scroll.css';
 import Home from './pages/Home';
 import Collection from './pages/Collection';
 import Product from './pages/Product';
 import Cart from './pages/Cart';
-import PlaceOrder from './pages/PlaceOrder';
 import Contact from './pages/Contact';
 import About from './pages/About';
 import Explore from './pages/Explore';
@@ -15,9 +16,8 @@ const App = () => {
     <Routes>
       <Route path="/" element={<Home/>} />
       <Route path="/collection" element={<Collection />} />
-      <Route path="/product" element={<Product />} />
+      <Route path="/product/:id" element={<Product />} />
       <Route path="/cart" element={<Cart />} />
-      <Route path="/place-order" element={<PlaceOrder />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/about" element={<About />} />
       <Route path="/explore" element={<Explore />} />
