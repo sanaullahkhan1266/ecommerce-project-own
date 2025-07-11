@@ -11,12 +11,17 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",
+    "axios": "^1.10.0",
+    "emailjs-com": "^3.2.0",
     "framer-motion": "^12.23.0",
     "gsap": "^3.13.0",
     "locomotive-scroll": "^4.1.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-phone-input-2": "^2.15.1",
     "react-router-dom": "^7.6.3",
+    "react-select": "^5.10.1",
+    "react-select-country-list": "^2.2.3",
     "react-toastify": "^11.0.5",
     "tailwindcss": "^4.1.11"
   },

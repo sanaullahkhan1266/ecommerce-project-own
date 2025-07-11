@@ -1,143 +1,159 @@
-import React, { useState } from 'react';
-
-const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+import React, { useState, useContext, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { ShopContext } from '../context/ShopContext';
+import ProductGallery from '../components/ProductGallery';
+import ProductInfo from '../components/ProductInfo';
+import ProductReviewSection from '../components/ProductReviewSection';
+import ProductSuggestions from '../components/ProductSuggestions';
+import Navbar from './../components/Navbar';
+import { toast } from 'react-toastify';
 
 const Product = () => {
-  const [selectedSize, setSelectedSize] = useState('M');
+  const { id } = useParams();
+  const { products, addToCart } = useContext(ShopContext);
+  const [selectedSize, setSelectedSize] = useState('');
+  const [mainImage, setMainImage] = useState('');
+  const [product, setProduct] = useState(null);
+  const [clickedSize, setClickedSize] = useState(null);
+
+  // Find product by ID
+  useEffect(() => {
+    const foundProduct = products.find(p => p._id === id);
+    if (foundProduct) {
+      setProduct(foundProduct);
+      setMainImage(Array.isArray(foundProduct.image) ? foundProduct.image[0] : foundProduct.image);
+      // Set default size to first available size
+      if (foundProduct.sizes && foundProduct.sizes.length > 0) {
+        setSelectedSize(foundProduct.sizes[0]);
+      }
+    } else {
+      toast.error('Product not found!');
+    }
+  }, [id, products]);
+
+  const handleSizeClick = (size) => {
+    setSelectedSize(size);
+    setClickedSize(size);
+    setTimeout(() => setClickedSize(null), 2000);
+  };
+
+  const handleAddToCart = (size) => {
+    if (!product) return;
+    if (!size) {
+      toast.error('Please select a size before adding to cart!');
+      return;
+    }
+    addToCart(product._id, size, {
+      name: product.name,
+      price: product.price,
+      image: Array.isArray(product.image) ? product.image[0] : product.image,
+      description: product.description
+    });
+    toast.success(`Added ${product.name} (Size: ${size}) to cart!`);
+  };
+
+  // Show loading if product not found
+  if (!product) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-2xl font-bold mb-4">Product not found</div>
+            <div className="text-gray-600">The product you're looking for doesn't exist.</div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Generate suggestions based on same category
+  const suggestions = products
+    .filter(p => p._id !== id && p.category === product.category)
+    .slice(0, 4)
+    .map(p => ({
+      id: p._id,
+      img: Array.isArray(p.image) ? p.image[0] : p.image,
+      name: p.name,
+      rating: 4.5,
+      price: p.price,
+      oldPrice: p.price * 1.2, // 20% markup for old price
+      discount: 20,
+    }));
 
   return (
-    <div className="bg-gray-100 min-h-screen">
-      {/* Main Container */}
-      <div className="max-w-6xl mx-auto py-10 px-4">
-        {/* Top Section */}
-        <div className="flex flex-col md:flex-row gap-10 bg-white rounded-xl shadow-lg p-8">
-          {/* Gallery */}
-          <div className="flex-1">
-            <img
-              src="/src/assets/p_img1.png"
-              alt="Loose Fit Hoodie"
-              className="w-full h-96 object-cover rounded-lg mb-4"
+    <>
+      <Navbar />
+      <div className="min-h-screen pb-16">
+        <div className="max-w-7xl mx-auto py-12 px-4">
+          <div className="flex flex-col md:flex-row gap-12 bg-white p-10">
+            <ProductGallery 
+              images={Array.isArray(product.image) ? product.image : [product.image]} 
+              mainImage={mainImage} 
+              setMainImage={setMainImage} 
             />
-            <div className="flex gap-2">
-              <img src="/src/assets/p_img1.png" alt="" className="w-20 h-20 object-cover rounded-lg border" />
-              <img src="/src/assets/p_img2.png" alt="" className="w-20 h-20 object-cover rounded-lg border" />
-              <img src="/src/assets/p_img3.png" alt="" className="w-20 h-20 object-cover rounded-lg border" />
-              <img src="/src/assets/p_img4.png" alt="" className="w-20 h-20 object-cover rounded-lg border" />
-            </div>
+            <ProductInfo
+              title={product.name}
+              price={product.price}
+              sizes={product.sizes}
+              selectedSize={selectedSize}
+              setSelectedSize={handleSizeClick}
+              description={product.description}
+              shipping={{
+                discount: 'Disc 50%',
+                package: 'Regular Package',
+                delivery: '3-4 Working Days',
+                arrival: '10-12 October 2024',
+              }}
+              onAddToCart={handleAddToCart}
+            />
           </div>
-          {/* Info */}
-          <div className="flex-1 flex flex-col gap-4">
-            <span className="text-sm text-gray-500">Man Fashion</span>
-            <h1 className="text-3xl font-bold">Loose Fit Hoodie</h1>
-            <p className="text-2xl font-semibold text-gray-800">$24.99</p>
-            <div className="flex items-center gap-2 text-sm text-green-600">
-              <span>Order in <b>02:30:25</b> to get next day delivery</span>
-            </div>
-            {/* Size Selector */}
-            <div>
-              <div className="mb-2 font-medium">Select Size</div>
-              <div className="flex gap-2">
-                {sizes.map(size => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-2 rounded-full border ${selectedSize === size ? 'bg-black text-white' : 'bg-gray-100 text-gray-800'}`}
-                  >
-                    {size}
-                  </button>
-                ))}
+          {/* Size Selection Feedback */}
+          {clickedSize && (
+            <div className="mt-4 p-4 bg-green-100 border border-green-300 rounded-lg">
+              <div className="text-green-800 font-semibold">
+                ✓ Size {clickedSize} selected!
+              </div>
+              <div className="text-green-600 text-sm">
+                You can now add this item to your cart with size {clickedSize}.
               </div>
             </div>
-            {/* Add to Cart */}
-            <button className="mt-4 w-full py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition">
-              Add to Cart
-            </button>
-            {/* Description & Shipping */}
-            <div className="mt-6">
-              <h2 className="font-semibold mb-1">Description & Fit</h2>
-              <p className="text-gray-600 text-sm">
-                Loose-fit sweatshirt hoodie in medium weight cotton-blend fabric with a generous, but not oversized silhouette. Jersey-lined, drawstring hood, dropped shoulders, long sleeves, and a kangaroo pocket. Wide ribbing at cuffs and hem. Soft, brushed inside.
+          )}
+          <div className="mt-10">
+            <ProductReviewSection
+              rating={4.5}
+              reviews={50}
+              featuredReview={{
+                name: 'Alex Mathio',
+                stars: 5,
+                date: '13 Oct 2024',
+                text: 'NextGen\'s dedication to sustainability and ethical practices resonates strongly with today\'s consumers, positioning the brand as a responsible choice in the fashion world.',
+              }}
+            />
+          </div>
+          <div className="mt-10">
+            <ProductSuggestions 
+              suggestions={suggestions} 
+              addToCart={addToCart}
+              toast={toast}
+            />
+          </div>
+          {/* Small Footer */}
+          <div className="mt-16 pt-8 border-t border-gray-200">
+            <div className="text-center">
+              <p className="text-gray-500 text-sm">
+                © 2024 Loyan.co . All rights reserved.
               </p>
-            </div>
-            <div className="mt-4">
-              <h2 className="font-semibold mb-1">Shipping</h2>
-              <div className="flex gap-6 text-sm text-gray-600">
-                <div>
-                  <div>Discount</div>
-                  <div className="font-bold">Disc 50%</div>
-                </div>
-                <div>
-                  <div>Package</div>
-                  <div className="font-bold">Regular Package</div>
-                </div>
-                <div>
-                  <div>Delivery Time</div>
-                  <div className="font-bold">3-4 Working Days</div>
-                </div>
-                <div>
-                  <div>Est. Arrival</div>
-                  <div className="font-bold">10-12 October 2024</div>
-                </div>
+              <div className="flex justify-center gap-6 mt-2 text-xs text-gray-400">
+                <a href="#" className="hover:text-gray-600 transition-colors">Privacy Policy</a>
+                <a href="#" className="hover:text-gray-600 transition-colors">Terms of Service</a>
+                <a href="#" className="hover:text-gray-600 transition-colors">Contact</a>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Ratings & Reviews */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mt-10 flex flex-col md:flex-row gap-10">
-          {/* Rating Summary */}
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="text-5xl font-bold">4.5</div>
-            <div className="text-gray-500 mb-2">/ 5</div>
-            <div className="text-sm text-gray-400">(50 New Reviews)</div>
-            <div className="mt-4 w-full">
-              {[5, 4, 3, 2, 1].map(star => (
-                <div key={star} className="flex items-center gap-2">
-                  <span className="text-yellow-400">★</span>
-                  <div className="flex-1 bg-gray-200 h-2 rounded">
-                    <div className="bg-yellow-400 h-2 rounded" style={{ width: `${star * 20}%` }}></div>
-                  </div>
-                  <span className="text-xs text-gray-500">{star}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Featured Review */}
-          <div className="flex-1">
-            <div className="bg-gray-50 rounded-lg p-4 shadow">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="font-semibold">Alex Mathio</span>
-                <span className="text-yellow-400">★★★★★</span>
-                <span className="text-xs text-gray-400 ml-auto">13 Oct 2024</span>
-              </div>
-              <div className="text-gray-700 text-sm">
-                "NextGen's dedication to sustainability and ethical practices resonates strongly with today's consumers, positioning the brand as a responsible choice in the fashion world."
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* You Might Also Like */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">You might also like</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {/* Suggestion Card */}
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-white rounded-xl shadow p-4 flex flex-col items-center">
-                <img src={`/src/assets/p_img${i + 1}.png`} alt="" className="w-32 h-32 object-cover rounded mb-2" />
-                <div className="font-semibold mb-1">Product Name {i}</div>
-                <div className="flex items-center gap-1 text-yellow-400 text-sm mb-1">
-                  ★★★★☆
-                </div>
-                <div className="text-gray-800 font-bold mb-1">${100 + i * 20}</div>
-                <div className="text-xs text-gray-400 line-through">${120 + i * 20}</div>
-                <div className="text-xs text-red-500">-20%</div>
-              </div>
-            ))}
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
