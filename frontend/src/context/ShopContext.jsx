@@ -1,14 +1,20 @@
-import { createContext, useState, useEffect } from "react";
+import React, { createContext, useState } from "react";
 import { products } from "../assets/assets";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useEffect } from "react";
 
 export const ShopContext = createContext();
 
-const ShopContextProvider = ({ children }) => {
+export const ShopProvider = ({ children }) => {
     const currency = "$";
     const delivery_fees = 10;
     const [cart, setCart] = useState([]);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    // Simple login/logout functions
+    const login = () => setIsAuthenticated(true);
+    const logout = () => setIsAuthenticated(false);
 
     // item: { id, size, quantity, details }
     const addToCart = (id, size, details) => {
@@ -59,7 +65,7 @@ const ShopContextProvider = ({ children }) => {
     }, [cart]);
 
     const value = {
-      products, currency, delivery_fees, cart, addToCart, removeFromCart, increaseQuantity, decreaseQuantity
+      products, currency, delivery_fees, cart, addToCart, removeFromCart, increaseQuantity, decreaseQuantity, isAuthenticated, login, logout
     }
     return(
         <ShopContext.Provider value={value}>
@@ -68,4 +74,4 @@ const ShopContextProvider = ({ children }) => {
         </ShopContext.Provider>
     )
 }
-export default ShopContextProvider;
+export default ShopProvider;

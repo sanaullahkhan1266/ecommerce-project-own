@@ -1,15 +1,20 @@
 import React, { useState, useRef, useEffect, useContext } from 'react'
 import { assets } from '../assets/assets.js';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ShopContext } from '../context/ShopContext';
+import profileIcon from "../assets/profile_icon.png";
+import ProductGallery from "../components/ProductGallery";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const overlayRef = useRef(null);
-  const { cart } = useContext(ShopContext);
+  const { cart, isAuthenticated, logout } = useContext(ShopContext);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -57,84 +62,103 @@ const Navbar = () => {
     };
   }, [isMenuOpen]);
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <>
-      <nav className="w-full bg-white border-b border-gray-100 relative z-40">
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3">
-          {/* Left: Logo and Nav Links */}
-          <div className="flex items-center gap-4 sm:gap-8">
-            <Link to="/" onClick={closeMenu}>
-              <img src={assets.logo} alt="logo" className="h-6 sm:h-8 w-auto" style={{ fontFamily: 'serif', fontWeight: 'bold' }} />
-            </Link>
-            {/* Desktop Navigation */}
-            <ul className="hidden md:flex gap-6 font-semibold tracking-wide uppercase text-black">
-              <li className="text-[10px]"><NavLink to="/">HOME</NavLink></li>
-              <li className="text-[10px]"><NavLink to="/collection">COLLECTION</NavLink></li>
-              <li className="text-[10px]"><NavLink to="/about">ABOUT</NavLink></li>
-              <li className="text-[10px]"><NavLink to="/contact">CONTACT</NavLink></li> 
-            </ul>
-          </div>
-          
-          {/* Right: Icons */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            <img src={assets.search_icon} className="w-4 h-4 cursor-pointer" alt="search" />
-            <img src={assets.profile_icon} className="w-4 h-4 cursor-pointer" alt="profile" />
-            <Link to="/cart" className="relative" onClick={closeMenu}>
-              <img src={assets.cart_icon} alt="cart" className="w-4 h-4 min-w-4" />
-              {cartCount > 0 && (
-                <p className="absolute right-[-5px] bottom-[-5px] w-3.5 h-3.5 text-center leading-4 bg-black text-white aspect-square rounded-full text-[7px] flex items-center justify-center">{cartCount}</p>
-              )}
-            </Link>
-            {/* Mobile Menu Button */}
-            <motion.button 
+      <nav className="w-full border-b relative z-40">
+        <div className="flex items-center justify-between px-2 sm:px-6 py-3">
+          {/* Left: Hamburger */}
+          <div className="flex-shrink-0 flex items-center" style={{ minWidth: '48px' }}>
+            <motion.button
               onClick={toggleMenu}
-              className="md:hidden p-1"
+              className="p-1"
               aria-label="Toggle menu"
               whileTap={{ scale: 0.95 }}
               whileHover={{ scale: 1.05 }}
+              style={{ background: "none", border: "none" }}
             >
-              <motion.img 
-                src={isMenuOpen ? assets.cross_icon : assets.menu_icon} 
-                alt="menu" 
-                className="w-4 h-4" 
-                animate={{ rotate: isMenuOpen ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              />
+              {!isMenuOpen ? (
+                <div className="flex flex-col justify-between w-12 h-4">
+                  <span className="block h-0.5 w-full bg-black rounded"></span>
+                  <span className="block h-0.5 w-10/12 bg-black rounded ml-2"></span>
+                  <span className="block h-0.5 w-full bg-black rounded"></span>
+                </div>
+              ) : (
+                <img src={assets.cross_icon} alt="close" className="w-6 h-6" />
+              )}
             </motion.button>
+          </div>
+
+          {/* Center: Logo */}
+          <div className="flex-1 flex justify-center">
+            <Link to="/" onClick={closeMenu}>
+              <img
+                src={assets.logo}
+                alt="logo"
+                className="h-10 sm:h-12 w-auto"
+                style={{ fontFamily: 'serif', fontWeight: 'bold' }}
+              />
+            </Link>
+          </div>
+
+          {/* Right: Icons */}
+          <div className="flex-shrink-0 flex items-center gap-5 sm:gap-6" style={{ minWidth: '120px', justifyContent: 'flex-end' }}>
+            <img src={assets.search_icon} className="w-4 h-4 cursor-pointer" alt="search" />
+            <NavLink
+              to="/login"
+              className="text-sm font-sanrif text-gray-800 hover:text-gray-600 transition-colors duration-300"
+              onClick={closeMenu}
+            >
+              Login
+            </NavLink>
+            <Link to="/cart" className="relative flex items-center" onClick={closeMenu}>
+              <img src={assets.cart_icon} alt="cart" className="w-4 h-4 min-w-4" />
+              {cartCount > 0 && (
+                <span className="absolute -right-2 -bottom-2 w-4 h-4 bg-black text-white rounded-full text-[10px] flex items-center justify-center leading-none">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
             {/* Backdrop */}
             <motion.div
               ref={overlayRef}
-              className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-40 md:hidden"
+              className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-[9998] md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
               onClick={closeMenu}
             />
-            
-            {/* Side Menu - Now from LEFT */}
+            {/* Side Menu */}
             <motion.div
               ref={menuRef}
-              className="fixed top-0 left-0 h-full w-80 bg-white shadow-2xl z-50 md:hidden overflow-hidden"
-              initial={{ x: "-100%" }}
+              className="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-[9999] md:hidden overflow-hidden"
+              initial={{ x: "100%" }}
               animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ 
-                type: "spring", 
-                damping: 20, 
+              exit={{ x: "100%" }}
+              transition={{
+                type: "spring",
+                damping: 20,
                 stiffness: 100,
                 duration: 0.6
               }}
             >
-              {/* Menu Header */}
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <div>
@@ -151,103 +175,42 @@ const Navbar = () => {
                   </motion.button>
                 </div>
               </div>
-
-              {/* Menu Items */}
               <div className="p-6 overflow-y-auto h-full">
                 <ul className="space-y-4">
                   <motion.li className="menu-item">
-                    <NavLink 
-                      to="/" 
-                      onClick={closeMenu} 
-                      className="block p-4 hover:bg-gray-50 rounded-lg transition-colors duration-200"
-                    >
-                      <div>
-                        <span className="block text-lg font-bold text-gray-800 hover:text-gray-600 transition-colors duration-300">
-                          HOME
-                        </span>
+                    <NavLink to="/" onClick={closeMenu} className="block p-4 hover:bg-gray-50 rounded-lg transition-colors duration-200 text-left">
+                      <div className="text-left">
+                        <span className="block text-lg font-bold text-gray-800 hover:text-gray-600 transition-colors duration-300">HOME</span>
                         <span className="block text-xs text-gray-500">Featured products</span>
                       </div>
                     </NavLink>
                   </motion.li>
-
                   <motion.li className="menu-item">
-                    <NavLink 
-                      to="/collection" 
-                      onClick={closeMenu} 
-                      className="block p-4 hover:bg-gray-50 rounded-lg transition-colors duration-200"
-                    >
-                      <div>
-                        <span className="block text-lg font-bold text-gray-800 hover:text-gray-600 transition-colors duration-300">
-                          COLLECTION
-                        </span>
+                    <NavLink to="/collection" onClick={closeMenu} className="block p-4 hover:bg-gray-50 rounded-lg transition-colors duration-200 text-left">
+                      <div className="text-left">
+                        <span className="block text-lg font-bold text-gray-800 hover:text-gray-600 transition-colors duration-300">COLLECTION</span>
                         <span className="block text-xs text-gray-500">Browse all products</span>
                       </div>
                     </NavLink>
                   </motion.li>
-
                   <motion.li className="menu-item">
-                    <NavLink 
-                      to="/about" 
-                      onClick={closeMenu} 
-                      className="block p-4 hover:bg-gray-50 rounded-lg transition-colors duration-200"
-                    >
-                      <div>
-                        <span className="block text-lg font-bold text-gray-800 hover:text-gray-600 transition-colors duration-300">
-                          ABOUT
-                        </span>
+                    <NavLink to="/about" onClick={closeMenu} className="block p-4 hover:bg-gray-50 rounded-lg transition-colors duration-200 text-left">
+                      <div className="text-left">
+                        <span className="block text-lg font-bold text-gray-800 hover:text-gray-600 transition-colors duration-300">ABOUT</span>
                         <span className="block text-xs text-gray-500">Our brand story</span>
                       </div>
                     </NavLink>
                   </motion.li>
-
                   <motion.li className="menu-item">
-                    <NavLink 
-                      to="/contact" 
-                      onClick={closeMenu} 
-                      className="block p-4 hover:bg-gray-50 rounded-lg transition-colors duration-200"
-                    >
-                      <div>
-                        <span className="block text-lg font-bold text-gray-800 hover:text-gray-600 transition-colors duration-300">
-                          CONTACT
-                        </span>
+                    <NavLink to="/contact" onClick={closeMenu} className="block p-4 hover:bg-gray-50 rounded-lg transition-colors duration-200 text-left">
+                      <div className="text-left">
+                        <span className="block text-lg font-bold text-gray-800 hover:text-gray-600 transition-colors duration-300">CONTACT</span>
                         <span className="block text-xs text-gray-500">Get in touch</span>
                       </div>
                     </NavLink>
                   </motion.li>
+                  {/* Add more NavLinks for other pages as needed */}
                 </ul>
-
-                {/* Quick Actions */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4">
-                    Quick Actions
-                  </h3>
-                  <div className="space-y-3">
-                    <motion.button 
-                      className="flex items-center gap-3 w-full p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200"
-                      whileHover={{ x: 5 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <img src={assets.search_icon} alt="search" className="w-5 h-5" />
-                      <span className="text-gray-700 font-medium">Search Products</span>
-                    </motion.button>
-                    
-                    <motion.button 
-                      className="flex items-center gap-3 w-full p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200"
-                      whileHover={{ x: 5 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <img src={assets.profile_icon} alt="profile" className="w-5 h-5" />
-                      <span className="text-gray-700 font-medium">My Account</span>
-                    </motion.button>
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <div className="text-center">
-                    <p className="text-xs text-gray-400">Free shipping on orders over $50</p>
-                  </div>
-                </div>
               </div>
             </motion.div>
           </>
@@ -256,5 +219,13 @@ const Navbar = () => {
     </>
   )
 }
+
+const dropdownItemStyle = {
+  display: "block",
+  padding: "10px 16px",
+  color: "#333",
+  textDecoration: "none",
+  cursor: "pointer",
+};
 
 export default Navbar

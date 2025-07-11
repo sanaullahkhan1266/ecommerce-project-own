@@ -111,7 +111,16 @@ const customCountryOption = (props) => {
   const { data, innerProps, innerRef } = props;
   const code = data.value ? data.value.toLowerCase() : "";
   return (
-    <div ref={innerRef} {...innerProps} style={{ display: "flex", alignItems: "center", gap: 10, padding: 8 }}>
+    <div
+      ref={innerRef}
+      {...innerProps}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: 8
+      }}
+    >
       {code && (
         <img
           src={`https://flagcdn.com/24x18/${code}.png`}
@@ -119,7 +128,7 @@ const customCountryOption = (props) => {
           style={{ width: 24, height: 18, borderRadius: 3, objectFit: "cover", border: "1px solid #eee" }}
         />
       )}
-      <span>{data.label}</span>
+      <span style={{ marginBottom: 2 }}>{data.label}</span>
     </div>
   );
 };
@@ -128,7 +137,13 @@ const customCountrySingleValue = (props) => {
   const { data } = props;
   const code = data.value ? data.value.toLowerCase() : "";
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10
+      }}
+    >
       {code && (
         <img
           src={`https://flagcdn.com/24x18/${code}.png`}
@@ -136,7 +151,7 @@ const customCountrySingleValue = (props) => {
           style={{ width: 24, height: 18, borderRadius: 3, objectFit: "cover", border: "1px solid #eee" }}
         />
       )}
-      <span>{data.label}</span>
+      <span style={{ marginBottom: 2 }}>{data.label}</span>
     </div>
   );
 };
@@ -153,7 +168,7 @@ const PlaceOrder = () => {
     phone: "",
     email: "",
     address: "",
-    country: null,
+    country: { value: "PK", label: "Pakistan" },
     state: "",
     city: "",
     zip: "",
@@ -244,9 +259,11 @@ const PlaceOrder = () => {
         'QiSNxBd93XCTTCPAS'
       );
       toast.success("Order placed! Invoice sent to your email.");
+      setTimeout(() => navigate("/orders"), 1200); // Redirect after toast
     } catch (error) {
       console.error("EmailJS error:", error);
       toast.error("Order placed, but failed to send invoice email.");
+      setTimeout(() => navigate("/orders"), 1200); // Redirect after toast
     }
   };
 
@@ -330,7 +347,11 @@ const PlaceOrder = () => {
                       width: '100%',
                       paddingLeft: 48,
                       marginTop: 0,
-                      marginBottom: 0
+                      marginBottom: 0,
+                      padding: '12px 14px',
+                      borderRadius: 8,
+                      fontSize: 16,
+                      height: 48
                     }}
                     buttonStyle={{
                       border: 'none',
@@ -370,6 +391,7 @@ const PlaceOrder = () => {
                   value={form.country}
                   onChange={handleCountryChange}
                   placeholder="Select country"
+                  isSearchable={false}
                   components={{
                     Option: customCountryOption,
                     SingleValue: customCountrySingleValue
@@ -384,12 +406,37 @@ const PlaceOrder = () => {
                       background: '#fff',
                       color: '#222',
                       minHeight: 48,
-                      boxShadow: 'none'
+                      height: 48,
+                      boxShadow: 'none',
+                      padding: 0
+                    }),
+                    valueContainer: (base) => ({
+                      ...base,
+                      height: 48,
+                      padding: '0 14px'
+                    }),
+                    input: (base) => ({
+                      ...base,
+                      margin: 0,
+                      padding: 0
                     }),
                     menu: (base) => ({
                       ...base,
                       borderRadius: 8,
                       zIndex: 9999
+                    }),
+                    dropdownIndicator: (base) => ({
+                      ...base,
+                      color: '#888',
+                      padding: '0 10px'
+                    }),
+                    indicatorSeparator: () => ({
+                      display: 'none'
+                    }),
+                    placeholder: (base) => ({
+                      ...base,
+                      color: '#888',
+                      fontWeight: 500
                     })
                   }}
                 />
@@ -411,6 +458,61 @@ const PlaceOrder = () => {
               <div>
                 <label style={{ fontWeight: 600, fontSize: 15, color: light.text }}>Address <span style={{ color: '#e53935' }}>*</span></label>
                 <input name="address" value={form.address} onChange={handleChange} placeholder="Enter your full address" style={{ ...inputStyle, width: '100%', marginTop: 6 }} required />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if ("geolocation" in navigator) {
+                      navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                          const lat = position.coords.latitude;
+                          const lon = position.coords.longitude;
+                          try {
+                            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+                            const data = await response.json();
+                            if (data && data.display_name) {
+                              setForm((prev) => ({
+                                ...prev,
+                                address: data.display_name
+                              }));
+                              toast.success("Address fetched from your location!");
+                            } else {
+                              toast.error("Could not retrieve address from location.");
+                            }
+                          } catch (err) {
+                            toast.error("Error fetching address from location.");
+                          }
+                        },
+                        (error) => {
+                          toast.error("Unable to fetch your location.");
+                        }
+                      );
+                    } else {
+                      toast.error("Geolocation is not supported by your browser.");
+                    }
+                  }}
+                  style={{
+                    marginTop: 8,
+                    padding: '2px 7px',
+                    borderRadius: 5,
+                    border: 'none',
+                    background: '#111',
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: 11,
+                    height: 24,
+                    minHeight: 0,
+                    minWidth: 0,
+                    cursor: 'pointer',
+                    boxShadow: '0 1px 4px #0001',
+                    outline: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
+                >
+                  <svg width="11" height="11" fill="none" viewBox="0 0 24 24" style={{ display: 'inline', verticalAlign: 'middle' }}><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z" fill="#fff"/></svg>
+                  Use My Current Location
+                </button>
               </div>
               <div>
                 <label style={{ fontWeight: 600, fontSize: 15, color: light.text }}>Order notes (optional)</label>
