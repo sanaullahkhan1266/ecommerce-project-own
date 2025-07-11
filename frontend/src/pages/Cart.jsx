@@ -5,6 +5,8 @@ import binIcon from "../assets/bin_icon.png";
 import backIcon from "../assets/cross_icon.png"; // Replace with a left arrow if you have one
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const light = {
   bg: "#fff",
@@ -87,41 +89,34 @@ const Cart = () => {
       fontFamily: "'Quicksand', 'Poppins', 'Arial', sans-serif",
       padding: "2.5rem 0"
     }}>
-      {/* Back Icon */}
-      <button
-        onClick={() => navigate(-1)}
-        style={{
-          background: light.accent2,
-          border: "none",
-          cursor: "pointer",
-          position: "absolute",
-          left: 32,
-          top: 32,
-          padding: "8px 18px 8px 10px",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          borderRadius: 30,
-          boxShadow: light.shadow,
-          transition: "background 0.2s, box-shadow 0.2s",
-          fontWeight: 600,
-          color: light.text,
-          fontSize: 18
-        }}
-        title="Back"
-        onMouseOver={e => e.currentTarget.style.background = light.accent3}
-        onMouseOut={e => e.currentTarget.style.background = light.accent2}
-      >
-        <img src={backIcon} alt="Back" style={{ width: 24, height: 24, opacity: 0.7 }} />
-        Back
-      </button>
+      {/* Back Button */}
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <button
+          type="button"
+          onClick={() => navigate('/place-order')}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#111",
+            fontWeight: 600,
+            fontSize: 16,
+            cursor: "pointer",
+            marginBottom: 10,
+            display: "flex",
+            alignItems: "center",
+            gap: 6
+          }}
+        >
+          <span style={{ fontSize: 22, display: "inline-block", transform: "translateY(1px)" }}>←</span>
+          Place Order
+        </button>
 
-      {/* Progress Bar */}
-      <StepProgressBar currentStep={0} />
+        {/* Progress Bar */}
+        <StepProgressBar currentStep={0} />
 
-      <div style={{
-        display: "flex", gap: 40, maxWidth: 1200, margin: "0 auto"
-      }}>
+        <div style={{
+          display: "flex", gap: 40
+        }}>
         {/* Cart Table */}
         <div style={{ flex: 2 }}>
           <h2 style={{
@@ -246,19 +241,45 @@ const Cart = () => {
           {/* Coupon */}
           <div>
             <div style={{ fontWeight: 700, marginBottom: 10, fontSize: 17, color: light.text }}>Coupon</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 24 }}>
               <input
                 type="text"
                 value={coupon}
                 onChange={e => setCoupon(e.target.value)}
                 placeholder="Enter coupon code"
                 style={{
-                  flex: 1, padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${light.border}`, fontSize: 16, background: light.bg
+                  flex: 1,
+                  padding: "10px 14px",
+                  border: "2px solid #222",
+                  borderRight: "none",
+                  borderRadius: "10px 0 0 10px",
+                  fontSize: 16,
+                  background: light.bg,
+                  height: 44,
+                  outline: "none"
                 }}
               />
               <button
                 style={{
-                  background: light.accent3, border: "none", fontSize: 16, cursor: "pointer", color: "#888", borderRadius: 10, width: 60, height: 36, fontWeight: 600
+                  background: "#fff",
+                  border: "2px solid #222",
+                  borderLeft: "none",
+                  color: "#222",
+                  borderRadius: "0 10px 10px 0",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  height: 44,
+                  width: 70,
+                  cursor: "pointer",
+                  transition: "background 0.2s, color 0.2s"
+                }}
+                onMouseOver={e => {
+                  e.currentTarget.style.background = "#222";
+                  e.currentTarget.style.color = "#fff";
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.background = "#fff";
+                  e.currentTarget.style.color = "#222";
                 }}
                 onClick={() => {
                   if (coupon.trim()) {
@@ -267,7 +288,9 @@ const Cart = () => {
                     alert("Please enter a coupon code.");
                   }
                 }}
-              >Apply</button>
+              >
+                Apply
+              </button>
             </div>
           </div>
           {/* Price Details */}
@@ -315,6 +338,7 @@ const Cart = () => {
           </button>
         </div>
       </div>
+      </div>
       {/* Small Footer */}
       <footer style={{
         width: '100%',
@@ -328,6 +352,7 @@ const Cart = () => {
       }}>
         © {new Date().getFullYear()} LOYAN. All rights reserved.
       </footer>
+      <ToastContainer position="bottom-center" autoClose={3000} />
     </div>
   );
 };

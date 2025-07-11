@@ -253,10 +253,10 @@ const PlaceOrder = () => {
     // Send email via EmailJS
     try {
       await emailjs.send(
-        'service_kfw7iuf',
-        'template_drarljq',
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
         templateParams,
-        'QiSNxBd93XCTTCPAS'
+        import.meta.env.VITE_EMAILJS_USER_ID
       );
       toast.success("Order placed! Invoice sent to your email.");
       setTimeout(() => navigate("/orders"), 1200); // Redirect after toast

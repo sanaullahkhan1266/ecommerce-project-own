@@ -22,7 +22,7 @@ import { ShopProvider } from "./context/ShopContext";
 const App = () => {
   return (
     <div className="px-4 sm:px-[5vm] md:px-[7vm] lg:px-[9vm] xl:px-[12vm] 2xl:px-[14vm]">
-      <ToastContainer position="top-center" autoClose={2000} />
+      <ToastContainer position="bottom-left" autoClose={2000} />
       <ShopProvider>
         <Routes>
           <Route path="/" element={<Home/>} />
